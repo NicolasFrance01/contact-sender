@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
         const contract = await prisma.contract.findUnique({
             where: { id: contractId },
             include: { template: true },
-        });
+        }) as any;
 
         if (!contract) {
             return NextResponse.json({ error: "Contrato no encontrado" }, { status: 404 });
