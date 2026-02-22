@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Send, Mail, Phone, Eye, ChevronLeft, Check } from "lucide-react";
+import { Send, Mail, Phone, Eye, ChevronLeft, Check, Download } from "lucide-react";
 import { formatFieldValue, getFieldTypeLabel } from "@/lib/utils";
 
 interface Field {
@@ -120,6 +120,16 @@ export function ContractFillClient({
         } finally {
             setSending(false);
         }
+    }
+
+    function handleDownload() {
+        if (!generatedPdfData) return;
+        const link = document.createElement("a");
+        link.href = generatedPdfData;
+        link.download = `contrato-${template.name.replace(/\s+/g, "-")}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 
     function handleSendWhatsapp() {
@@ -240,9 +250,17 @@ export function ContractFillClient({
             {step === "preview" && generatedPdfData && (
                 <div>
                     <div className="rounded-2xl overflow-hidden mb-4" style={{ border: "1px solid var(--color-border)", height: "60vh" }}>
-                        <div className="px-4 py-3 flex items-center gap-2" style={{ background: "var(--color-surface-2)", borderBottom: "1px solid var(--color-border)" }}>
-                            <Eye className="w-4 h-4" style={{ color: "var(--color-gold)" }} />
-                            <span className="text-sm font-medium">Vista previa del contrato completado</span>
+                        <div className="px-4 py-3 flex items-center justify-between" style={{ background: "var(--color-surface-2)", borderBottom: "1px solid var(--color-border)" }}>
+                            <div className="flex items-center gap-2">
+                                <Eye className="w-4 h-4" style={{ color: "var(--color-gold)" }} />
+                                <span className="text-sm font-medium">Vista previa del contrato completado</span>
+                            </div>
+                            <button onClick={handleDownload}
+                                className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+                                style={{ background: "var(--color-surface-3)", border: "1px solid var(--color-border)", color: "var(--color-text)" }}>
+                                <Download className="w-3.5 h-3.5" />
+                                Descargar PDF
+                            </button>
                         </div>
                         <iframe src={generatedPdfData} className="w-full h-full" style={{ border: "none" }} />
                     </div>
@@ -341,9 +359,17 @@ export function ContractFillClient({
                                 <textarea value={whatsappMsg} onChange={(e) => setWhatsappMsg(e.target.value)}
                                     rows={4} className="w-full px-4 py-3 rounded-xl text-sm resize-none" />
                             </div>
-                            <p className="text-xs" style={{ color: "var(--color-text-muted)" }}>
-                                💡 Se abrirá WhatsApp Web. El PDF fue guardado y podés adjuntarlo manualmente.
-                            </p>
+                            <div className="p-4 rounded-xl space-y-3" style={{ background: "rgba(198,167,94,0.05)", border: "1px solid rgba(198,167,94,0.2)" }}>
+                                <p className="text-xs" style={{ color: "var(--color-text-muted)" }}>
+                                    💡 Se abrirá WhatsApp Web/Desktop. Por limitaciones de WhatsApp, el archivo no se adjunta automáticamente.
+                                </p>
+                                <button onClick={handleDownload}
+                                    className="w-full py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition-all"
+                                    style={{ background: "var(--color-surface-3)", border: "1px solid var(--color-border)", color: "var(--color-gold)" }}>
+                                    <Download className="w-3.5 h-3.5" />
+                                    Descargar PDF para adjuntar
+                                </button>
+                            </div>
                             <button onClick={handleSendWhatsapp} disabled={!whatsappPhone}
                                 className="w-full py-3 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
                                 style={{ background: "linear-gradient(135deg, #25D366, #128C7E)", color: "#fff" }}>

@@ -75,11 +75,19 @@ export default async function HistoryPage() {
                                             {new Date(send.sentAt).toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}
                                         </td>
                                         <td className="px-5 py-4">
-                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium"
-                                                style={{ background: `${statusColor[send.status]}15`, color: statusColor[send.status], border: `1px solid ${statusColor[send.status]}30` }}>
-                                                <span className="w-1.5 h-1.5 rounded-full" style={{ background: statusColor[send.status] }} />
-                                                {statusLabel[send.status]}
-                                            </span>
+                                            <div className="flex flex-col gap-1">
+                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium w-fit"
+                                                    title={send.errorMsg || undefined}
+                                                    style={{ background: `${statusColor[send.status]}15`, color: statusColor[send.status], border: `1px solid ${statusColor[send.status]}30` }}>
+                                                    <span className="w-1.5 h-1.5 rounded-full" style={{ background: statusColor[send.status] }} />
+                                                    {statusLabel[send.status]}
+                                                </span>
+                                                {send.status === "ERROR" && send.errorMsg && (
+                                                    <span className="text-[10px] truncate max-w-[150px]" style={{ color: "var(--color-error)" }}>
+                                                        {send.errorMsg}
+                                                    </span>
+                                                )}
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}

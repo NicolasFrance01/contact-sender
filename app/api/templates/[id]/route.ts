@@ -59,3 +59,57 @@ export async function DELETE(
         return NextResponse.json({ error: "Error al eliminar la plantilla" }, { status: 500 });
     }
 }
+export async function PATCH(
+    req: NextRequest,
+    { params }: { params: { id: string } }
+) {
+    const session = await auth();
+    if (!session || !["MANAGER", "ADMIN"].includes(session.user.role)) {
+        return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    }
+
+    try {
+        const body = await req.json();
+        const { name, description, pdfData, fields } = body;
+
+        // Update template basic info
+        await prisma.template.update({
+            where: { id: params.id },
+            data: {
+                name,
+                description,
+                ...(pdfData && { pdfData }),
+                updatedAt: new Date(),
+            },
+        });
+
+        // Update fields: delete old and create new ones (simplest way to sync)
+        if (fields) {
+            await prisma.templateField.deleteMany({
+                where: { templateId: params.id },
+            });
+
+            await prisma.templateField.createMany({
+                data: fields.map((f: any) => ({
+                    templateId: params.id,
+                    name: f.name,
+                    label: f.label,
+                    type: f.type,
+                    required: f.required,
+                    maxLength: f.maxLength,
+                    page: f.page || 0,
+                    x: f.x,
+                    y: f.y,
+                    width: f.width,
+                    height: f.height,
+                    order: f.order || 0,
+                })),
+            });
+        }
+
+        return NextResponse.json({ success: true });
+    } catch (error) {
+        console.error("Update error:", error);
+        return NextResponse.json({ error: "Error al actualizar la plantilla" }, { status: 500 });
+    }
+}
