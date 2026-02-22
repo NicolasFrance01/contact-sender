@@ -23,7 +23,7 @@ interface Template {
     id: string;
     name: string;
     description: string | null;
-    pdfPath: string;
+    pdfData: string;
     fields: Field[];
 }
 
@@ -48,7 +48,7 @@ export function ContractFillClient({
     const [step, setStep] = useState<"form" | "preview" | "send">("form");
     const [sendMode, setSendMode] = useState<"email" | "whatsapp" | null>(null);
     const [contractId, setContractId] = useState<string | null>(null);
-    const [generatedPdfPath, setGeneratedPdfPath] = useState<string | null>(null);
+    const [generatedPdfData, setGeneratedPdfData] = useState<string | null>(null);
     const [generating, setGenerating] = useState(false);
     const [sending, setSending] = useState(false);
     const [submitted, setSubmitted] = useState(false);
@@ -95,7 +95,7 @@ export function ContractFillClient({
             if (!res.ok) throw new Error("Error al generar el PDF");
             const data = await res.json();
             setContractId(data.contractId);
-            setGeneratedPdfPath(data.pdfPath);
+            setGeneratedPdfData(data.pdfData);
             setStep("preview");
         } catch (err: unknown) {
             setApiError(err instanceof Error ? err.message : "Error inesperado");
@@ -237,14 +237,14 @@ export function ContractFillClient({
             )}
 
             {/* PREVIEW */}
-            {step === "preview" && generatedPdfPath && (
+            {step === "preview" && generatedPdfData && (
                 <div>
                     <div className="rounded-2xl overflow-hidden mb-4" style={{ border: "1px solid var(--color-border)", height: "60vh" }}>
                         <div className="px-4 py-3 flex items-center gap-2" style={{ background: "var(--color-surface-2)", borderBottom: "1px solid var(--color-border)" }}>
                             <Eye className="w-4 h-4" style={{ color: "var(--color-gold)" }} />
                             <span className="text-sm font-medium">Vista previa del contrato completado</span>
                         </div>
-                        <iframe src={`${generatedPdfPath}#toolbar=0`} className="w-full h-full" style={{ border: "none" }} />
+                        <iframe src={generatedPdfData} className="w-full h-full" style={{ border: "none" }} />
                     </div>
 
                     {/* Summary of filled values */}

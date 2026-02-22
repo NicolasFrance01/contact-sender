@@ -47,15 +47,7 @@ export async function DELETE(
             return NextResponse.json({ error: "Plantilla no encontrada" }, { status: 404 });
         }
 
-        // Delete PDF file if exists
-        if (template.pdfPath) {
-            const fullPath = path.join(process.cwd(), "public", template.pdfPath);
-            try {
-                await fs.unlink(fullPath);
-            } catch (e) {
-                console.warn("Could not delete physical PDF file:", e);
-            }
-        }
+        // PDF is stored in DB, no local file to delete
 
         await prisma.template.delete({
             where: { id: params.id },

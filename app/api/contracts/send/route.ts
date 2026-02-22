@@ -39,7 +39,8 @@ export async function POST(req: NextRequest) {
                 },
             });
 
-            const fullPdfPath = path.join(process.cwd(), "public", contract.pdfPath);
+            const base64Data = contract.pdfData.split(",")[1] || contract.pdfData;
+            const pdfBuffer = Buffer.from(base64Data, "base64");
 
             await transporter.sendMail({
                 from: settings.smtpFrom || settings.smtpUser,
@@ -49,7 +50,7 @@ export async function POST(req: NextRequest) {
                 attachments: [
                     {
                         filename: `${contract.template.name}.pdf`,
-                        path: fullPdfPath,
+                        content: pdfBuffer,
                     },
                 ],
             });

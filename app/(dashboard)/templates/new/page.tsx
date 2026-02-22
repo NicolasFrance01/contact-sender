@@ -151,7 +151,7 @@ export default function NewTemplatePage() {
             formData.append("pdf", pdfFile);
             const uploadRes = await fetch("/api/upload", { method: "POST", body: formData });
             if (!uploadRes.ok) throw new Error("Error al subir el PDF");
-            const { path: pdfPath } = await uploadRes.json();
+            const { pdfData } = await uploadRes.json();
 
             const res = await fetch("/api/templates", {
                 method: "POST",
@@ -159,7 +159,7 @@ export default function NewTemplatePage() {
                 body: JSON.stringify({
                     name: templateName.trim(),
                     description: templateDesc.trim() || null,
-                    pdfPath,
+                    pdfData,
                     fields: fields.map((f, i) => ({ ...f, order: i })),
                 }),
             });

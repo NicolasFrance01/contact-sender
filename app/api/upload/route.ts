@@ -19,14 +19,13 @@ export async function POST(req: NextRequest) {
 
         const bytes = await file.arrayBuffer();
         const buffer = Buffer.from(bytes);
+        const base64 = buffer.toString("base64");
+        const dataUrl = `data:application/pdf;base64,${base64}`;
 
-        const filename = `${Date.now()}-${file.name.replace(/\s+/g, "_")}`;
-        const uploadDir = path.join(process.cwd(), "public/uploads");
-        const filePath = path.join(uploadDir, filename);
-
-        await writeFile(filePath, buffer);
-
-        return NextResponse.json({ path: `/uploads/${filename}` });
+        return NextResponse.json({
+            pdfData: dataUrl,
+            name: file.name
+        });
     } catch (error) {
         console.error("Upload error:", error);
         return NextResponse.json({ error: "Error al subir el archivo" }, { status: 500 });

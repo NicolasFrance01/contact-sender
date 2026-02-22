@@ -10,9 +10,9 @@ export async function POST(req: NextRequest) {
 
     try {
         const body = await req.json();
-        const { name, description, pdfPath, fields } = body;
+        const { name, description, pdfData, fields } = body;
 
-        if (!name || !pdfPath || !fields) {
+        if (!name || !pdfData || !fields) {
             return NextResponse.json({ error: "Faltan datos obligatorios" }, { status: 400 });
         }
 
@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
             data: {
                 name,
                 description,
-                pdfPath,
+                pdfData,
                 createdById: session.user.id,
                 fields: {
                     create: fields.map((f: any) => ({

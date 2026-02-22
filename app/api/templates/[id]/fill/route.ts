@@ -28,8 +28,8 @@ export async function POST(
         }
 
         // Load original PDF
-        const originalPdfPath = path.join(process.cwd(), "public", template.pdfPath);
-        const pdfBytes = await fs.readFile(originalPdfPath);
+        const base64Data = template.pdfData.split(",")[1] || template.pdfData;
+        const pdfBytes = Buffer.from(base64Data, "base64");
         const pdfDoc = await PDFDocument.load(pdfBytes);
         const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
         const pages = pdfDoc.getPages();
@@ -44,13 +44,10 @@ export async function POST(
             if (pageIndex >= pages.length) continue;
 
             const page = pages[pageIndex];
-            const { width, height } = page.getSize();
+            const { height } = page.getSize();
 
-            // Coordinate conversion: UI (top-left) to PDF (bottom-left)
-            // Note: We assume fields.x and fields.y are in points relative to page top-left.
-            // If the UI scale was different, this would need adjusting.
             const pdfX = field.x;
-            const pdfY = height - field.y - (field.height / 2); // Approximate center-aligned vertically
+            const pdfY = height - field.y - (field.height / 2);
 
             page.drawText(formattedValue, {
                 x: pdfX,
@@ -61,14 +58,10 @@ export async function POST(
             });
         }
 
-        // Save generated PDF
+        // Generate PDF Data URL
         const generatedBytes = await pdfDoc.save();
-        const filename = `contract-${Date.now()}-${params.id}.pdf`;
-        const uploadsDir = path.join(process.cwd(), "public/uploads");
-        const filePath = path.join(uploadsDir, filename);
-        await fs.writeFile(filePath, generatedBytes);
-
-        const pdfPath = `/uploads/${filename}`;
+        const generatedBase64 = Buffer.from(generatedBytes).toString("base64");
+        const pdfData = `data:application/pdf;base64,${generatedBase64}`;
 
         // Create contract record
         const contract = await prisma.contract.create({
@@ -76,11 +69,11 @@ export async function POST(
                 templateId: params.id,
                 generatedById: session.user.id,
                 filledData: JSON.stringify(values),
-                pdfPath: pdfPath,
+                pdfData: pdfData,
             },
         });
 
-        return NextResponse.json({ contractId: contract.id, pdfPath });
+        return NextResponse.json({ contractId: contract.id, pdfData });
     } catch (error) {
         console.error("Fill error:", error);
         return NextResponse.json({ error: "Error al generar el PDF" }, { status: 500 });
