@@ -1,0 +1,88 @@
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { auth } from "@/auth";
+import nodemailer from "nodemailer";
+import path from "path";
+
+export async function POST(req: NextRequest) {
+    const session = await auth();
+    if (!session) {
+        return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+    }
+
+    try {
+        const { contractId, channel, recipient, subject, body } = await req.json();
+
+        const contract = await prisma.contract.findUnique({
+            where: { id: contractId },
+            include: { template: true },
+        });
+
+        if (!contract) {
+            return NextResponse.json({ error: "Contrato no encontrado" }, { status: 404 });
+        }
+
+        const settings = await prisma.settings.findFirst();
+
+        if (channel === "EMAIL") {
+            if (!settings?.smtpHost || !settings?.smtpUser || !settings?.smtpPass) {
+                return NextResponse.json({ error: "SMTP no configurado" }, { status: 400 });
+            }
+
+            const transporter = nodemailer.createTransport({
+                host: settings.smtpHost,
+                port: settings.smtpPort,
+                secure: settings.smtpPort === 465,
+                auth: {
+                    user: settings.smtpUser,
+                    pass: settings.smtpPass,
+                },
+            });
+
+            const fullPdfPath = path.join(process.cwd(), "public", contract.pdfPath);
+
+            await transporter.sendMail({
+                from: settings.smtpFrom || settings.smtpUser,
+                to: recipient,
+                subject: subject || `Contrato: ${contract.template.name}`,
+                text: body || "Se adjunta el documento solicitado.",
+                attachments: [
+                    {
+                        filename: `${contract.template.name}.pdf`,
+                        path: fullPdfPath,
+                    },
+                ],
+            });
+        }
+
+        // Save send Record
+        const sendRecord = await prisma.contractSend.create({
+            data: {
+                contractId,
+                sentById: session.user.id,
+                recipient,
+                channel,
+                status: "SENT",
+            },
+        });
+
+        // Audit log
+        await prisma.auditLog.create({
+            data: {
+                userId: session.user.id,
+                action: "SEND_CONTRACT",
+                details: JSON.stringify({
+                    contractId,
+                    channel,
+                    recipient,
+                    templateName: contract.template.name,
+                }),
+            },
+        });
+
+        return NextResponse.json({ success: true, sendId: sendRecord.id });
+    } catch (error) {
+        console.error("Send error:", error);
+        return NextResponse.json({ error: "Error al enviar el contrato" }, { status: 500 });
+    }
+}

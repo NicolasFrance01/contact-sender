@@ -1,0 +1,114 @@
+// This is your Prisma schema file
+// Roles: READER | EDITOR | MANAGER | ADMIN
+// FieldType: TEXT | NUMBER | CURRENCY_ARS | CURRENCY_USD | CURRENCY_EUR | DATE | CUSTOM
+// SendChannel: EMAIL | WHATSAPP
+// SendStatus: SENT | PENDING | ERROR
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      String   @default("EDITOR")
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  templates  Template[]
+  contracts  Contract[]
+  sends      ContractSend[]
+  auditLogs  AuditLog[]
+}
+
+model Template {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  pdfPath     String
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  createdBy User            @relation(fields: [createdById], references: [id])
+  fields    TemplateField[]
+  contracts Contract[]
+}
+
+model TemplateField {
+  id         String   @id @default(cuid())
+  templateId String
+  name       String
+  label      String
+  type       String   @default("TEXT")
+  required   Boolean  @default(true)
+  maxLength  Int?
+  page       Int      @default(0)
+  x          Float
+  y          Float
+  width      Float
+  height     Float
+  order      Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  template Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
+}
+
+model Contract {
+  id            String   @id @default(cuid())
+  templateId    String
+  generatedById String
+  filledData    String
+  pdfPath       String
+  createdAt     DateTime @default(now())
+
+  template    Template       @relation(fields: [templateId], references: [id])
+  generatedBy User           @relation(fields: [generatedById], references: [id])
+  sends       ContractSend[]
+}
+
+model ContractSend {
+  id         String   @id @default(cuid())
+  contractId String
+  sentById   String
+  recipient  String
+  channel    String
+  status     String   @default("PENDING")
+  sentAt     DateTime @default(now())
+  errorMsg   String?
+
+  contract Contract @relation(fields: [contractId], references: [id])
+  sentBy   User     @relation(fields: [sentById], references: [id])
+}
+
+model Settings {
+  id              String @id @default("1")
+  companyName     String @default("Mi Escribanía")
+  companyPhone    String @default("")
+  logoPath        String @default("")
+  smtpHost        String @default("")
+  smtpPort        Int    @default(587)
+  smtpUser        String @default("")
+  smtpPass        String @default("")
+  smtpFrom        String @default("")
+  whatsappMessage String @default("Estimado/a cliente, le adjuntamos el documento solicitado.")
+  emailSignature  String @default("")
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String
+  action    String
+  details   String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
