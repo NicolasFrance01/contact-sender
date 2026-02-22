@@ -38,7 +38,12 @@ export async function POST(req: NextRequest) {
                         user: settings.smtpUser,
                         pass: settings.smtpPass,
                     },
-                    // Increase timeout for slow SMTP servers
+                    // Hardening for Gmail and other providers
+                    tls: {
+                        rejectUnauthorized: false, // Helps with some serverless envs
+                        ciphers: 'SSLv3', // Compatibility
+                    },
+                    requireTLS: settings.smtpPort === 587,
                     connectionTimeout: 10000,
                     greetingTimeout: 5000,
                 });

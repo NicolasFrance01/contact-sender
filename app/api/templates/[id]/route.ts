@@ -49,6 +49,10 @@ export async function DELETE(
 
         // PDF is stored in DB, no local file to delete
 
+        // Manual cleanup as fallback for Cascade issues
+        await prisma.contract.deleteMany({ where: { templateId: params.id } });
+        await prisma.templateField.deleteMany({ where: { templateId: params.id } });
+
         await prisma.template.delete({
             where: { id: params.id },
         });
