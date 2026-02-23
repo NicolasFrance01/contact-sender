@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import { Upload, X, Plus, ChevronRight, ChevronLeft, Save, Settings, Move, FileText } from "lucide-react";
 import { getFieldTypeLabel } from "@/lib/utils";
 import { Document, Page, pdfjs } from "react-pdf";
-import "react-pdf/dist/esm/Page/AnnotationLayer.css";
-import "react-pdf/dist/esm/Page/TextLayer.css";
+import "react-pdf/dist/Page/AnnotationLayer.css";
+import "react-pdf/dist/Page/TextLayer.css";
 
 // Configure worker
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
