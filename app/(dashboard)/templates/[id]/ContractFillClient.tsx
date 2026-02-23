@@ -1,9 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Send, Mail, Phone, Eye, ChevronLeft, Check, Download } from "lucide-react";
+import { Send, Mail, Phone, Eye, ChevronLeft, ChevronRight, Check, Download, FileText, Plus, Move, Settings } from "lucide-react";
 import { formatFieldValue, getFieldTypeLabel } from "@/lib/utils";
+import { Document, Page, pdfjs } from "react-pdf";
+import "react-pdf/dist/esm/Page/AnnotationLayer.css";
+import "react-pdf/dist/esm/Page/TextLayer.css";
+
+// Configure worker
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
 
 interface Field {
     id: string;
@@ -53,6 +59,12 @@ export function ContractFillClient({
     const [sending, setSending] = useState(false);
     const [submitted, setSubmitted] = useState(false);
     const [apiError, setApiError] = useState("");
+    const [numPages, setNumPages] = useState<number>(0);
+    const [pageNumber, setPageNumber] = useState(1);
+
+    function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
+        setNumPages(numPages);
+    }
 
     // Email form
     const [emailTo, setEmailTo] = useState("");
@@ -249,20 +261,56 @@ export function ContractFillClient({
             {/* PREVIEW */}
             {step === "preview" && generatedPdfData && (
                 <div>
-                    <div className="rounded-2xl overflow-hidden mb-4" style={{ border: "1px solid var(--color-border)", height: "60vh" }}>
-                        <div className="px-4 py-3 flex items-center justify-between" style={{ background: "var(--color-surface-2)", borderBottom: "1px solid var(--color-border)" }}>
-                            <div className="flex items-center gap-2">
-                                <Eye className="w-4 h-4" style={{ color: "var(--color-gold)" }} />
-                                <span className="text-sm font-medium">Vista previa del contrato completado</span>
+                    <div className="rounded-2xl overflow-hidden mb-4 flex flex-col" style={{ border: "1px solid var(--color-border)", height: "70vh", background: "var(--color-surface-2)" }}>
+                        <div className="px-4 py-3 flex items-center justify-between" style={{ borderBottom: "1px solid var(--color-border)" }}>
+                            <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-2">
+                                    <Eye className="w-4 h-4" style={{ color: "var(--color-gold)" }} />
+                                    <span className="text-sm font-medium">Vista previa del contrato</span>
+                                </div>
+                                {numPages > 1 && (
+                                    <div className="flex items-center gap-2 px-2 py-1 rounded-lg bg-surface-3 border border-border">
+                                        <button
+                                            disabled={pageNumber <= 1}
+                                            onClick={() => setPageNumber(prev => Math.max(1, prev - 1))}
+                                            className="p-1 disabled:opacity-30 hover:text-gold transition-colors"
+                                        >
+                                            <ChevronLeft className="w-4 h-4" />
+                                        </button>
+                                        <span className="text-xs font-medium min-w-[60px] text-center">
+                                            Pág. {pageNumber} / {numPages}
+                                        </span>
+                                        <button
+                                            disabled={pageNumber >= numPages}
+                                            onClick={() => setPageNumber(prev => Math.min(numPages, prev + 1))}
+                                            className="p-1 disabled:opacity-30 hover:text-gold transition-colors"
+                                        >
+                                            <ChevronRight className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                             <button onClick={handleDownload}
-                                className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
-                                style={{ background: "var(--color-surface-3)", border: "1px solid var(--color-border)", color: "var(--color-text)" }}>
+                                className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold"
+                                style={{ background: "var(--color-surface-3)", border: "1px solid var(--color-border)" }}>
                                 <Download className="w-3.5 h-3.5" />
                                 Descargar PDF
                             </button>
                         </div>
-                        <iframe src={generatedPdfData} className="w-full h-full" style={{ border: "none" }} />
+                        <div className="flex-1 overflow-auto bg-[#1a1a1a] flex justify-center p-4">
+                            <Document
+                                file={generatedPdfData}
+                                onLoadSuccess={onDocumentLoadSuccess}
+                                className="shadow-2xl"
+                            >
+                                <Page
+                                    pageNumber={pageNumber}
+                                    renderTextLayer={false}
+                                    renderAnnotationLayer={false}
+                                    scale={1.2}
+                                />
+                            </Document>
+                        </div>
                     </div>
 
                     {/* Summary of filled values */}

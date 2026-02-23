@@ -2,8 +2,14 @@
 
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Upload, X, Plus, ChevronRight, ChevronLeft, Save, Settings, Move } from "lucide-react";
+import { Upload, X, Plus, ChevronRight, ChevronLeft, Save, Settings, Move, FileText } from "lucide-react";
 import { getFieldTypeLabel } from "@/lib/utils";
+import { Document, Page, pdfjs } from "react-pdf";
+import "react-pdf/dist/esm/Page/AnnotationLayer.css";
+import "react-pdf/dist/esm/Page/TextLayer.css";
+
+// Configure worker
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
 
 interface FieldBox {
     id: string;
@@ -41,6 +47,8 @@ export default function NewTemplatePage() {
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState("");
     const [dragging, setDragging] = useState(false);
+    const [numPages, setNumPages] = useState<number>(0);
+    const [pageNumber, setPageNumber] = useState(1);
 
     // Drag-and-drop state
     const [isDraggingField, setIsDraggingField] = useState(false);
@@ -49,6 +57,10 @@ export default function NewTemplatePage() {
 
     const previewRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
+        setNumPages(numPages);
+    }
 
     function handleFileSelect(file: File) {
         if (file.type !== "application/pdf") {
@@ -59,6 +71,7 @@ export default function NewTemplatePage() {
         const url = URL.createObjectURL(file);
         setPdfPreviewUrl(url);
         setError("");
+        setPageNumber(1);
     }
 
     function handleDrop(e: React.DragEvent) {
@@ -75,7 +88,7 @@ export default function NewTemplatePage() {
             y: 60,
             width: 200,
             height: 32,
-            page: 0,
+            page: pageNumber - 1,
             name: `campo_${fields.length + 1}`,
             label: `Campo ${fields.length + 1}`,
             type: "TEXT",
@@ -286,8 +299,31 @@ export default function NewTemplatePage() {
                     <div className="flex-1 rounded-2xl overflow-hidden relative flex flex-col"
                         style={{ background: "var(--color-surface-2)", border: "1px solid var(--color-border)" }}>
                         <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: "1px solid var(--color-border)" }}>
-                            <div className="flex items-center gap-2">
-                                <span className="text-sm font-medium">{pdfFile?.name}</span>
+                            <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm font-medium">{pdfFile?.name}</span>
+                                    {numPages > 1 && (
+                                        <div className="flex items-center gap-2 ml-4 px-2 py-1 rounded-lg bg-surface-3 border border-border">
+                                            <button
+                                                disabled={pageNumber <= 1}
+                                                onClick={() => setPageNumber(prev => Math.max(1, prev - 1))}
+                                                className="p-1 disabled:opacity-30 hover:text-gold transition-colors"
+                                            >
+                                                <ChevronLeft className="w-4 h-4" />
+                                            </button>
+                                            <span className="text-xs font-medium min-w-[60px] text-center">
+                                                Pág. {pageNumber} / {numPages}
+                                            </span>
+                                            <button
+                                                disabled={pageNumber >= numPages}
+                                                onClick={() => setPageNumber(prev => Math.min(numPages, prev + 1))}
+                                                className="p-1 disabled:opacity-30 hover:text-gold transition-colors"
+                                            >
+                                                <ChevronRight className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
                                 <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "var(--color-surface-3)", color: "var(--color-text-dim)" }}>
                                     Matené apretado un campo para moverlo
                                 </span>
@@ -305,42 +341,52 @@ export default function NewTemplatePage() {
                             ref={previewRef}
                             onMouseMove={handleMouseMove}
                             onMouseUp={stopDragging}
-                            className="relative flex-1 w-full overflow-auto bg-[#1a1a1a]"
+                            className="relative flex-1 w-full overflow-auto bg-[#1a1a1a] flex justify-center"
                         >
                             {pdfPreviewUrl && (
-                                <iframe
-                                    src={pdfPreviewUrl + "#toolbar=0&navpanes=0"}
-                                    className="w-full h-full pointer-events-none"
-                                    style={{ minHeight: "800px", border: "none" }}
-                                />
-                            )}
+                                <Document
+                                    file={pdfPreviewUrl}
+                                    onLoadSuccess={onDocumentLoadSuccess}
+                                    className="relative"
+                                >
+                                    <Page
+                                        pageNumber={pageNumber}
+                                        renderTextLayer={false}
+                                        renderAnnotationLayer={false}
+                                        scale={1.2}
+                                        className="shadow-2xl"
+                                    />
 
-                            {/* Interaction layer */}
-                            <div className="absolute inset-0 z-10" style={{ minHeight: "800px" }}>
-                                {fields.map((field) => (
-                                    <div
-                                        key={field.id}
-                                        onMouseDown={(e) => startDragging(e, field)}
-                                        className={`absolute cursor-move select-none transition-shadow ${isDraggingField && draggedFieldId === field.id ? 'z-50' : 'z-20'}`}
-                                        style={{
-                                            left: field.x,
-                                            top: field.y,
-                                            width: field.width,
-                                            height: field.height,
-                                            border: `2px solid ${selectedField === field.id ? "var(--color-gold)" : "rgba(198,167,94,0.5)"}`,
-                                            background: selectedField === field.id ? "rgba(198,167,94,0.2)" : "rgba(198,167,94,0.08)",
-                                            borderRadius: "4px",
-                                            boxShadow: selectedField === field.id ? "0 0 15px rgba(198,167,94,0.3)" : "none",
-                                        }}
-                                    >
-                                        <div className="absolute -top-6 left-0 flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-medium"
-                                            style={{ background: "var(--color-surface-1)", border: `1px solid ${selectedField === field.id ? "var(--color-gold)" : "var(--color-border)"}`, color: selectedField === field.id ? "var(--color-gold)" : "var(--color-text)" }}>
-                                            <Move className="w-2.5 h-2.5" />
-                                            {field.label}
-                                        </div>
+                                    {/* Interaction layer overlayed on the page */}
+                                    <div className="absolute inset-0 z-10">
+                                        {fields
+                                            .filter(f => f.page === pageNumber - 1)
+                                            .map((field) => (
+                                                <div
+                                                    key={field.id}
+                                                    onMouseDown={(e) => startDragging(e, field)}
+                                                    className={`absolute cursor-move select-none transition-shadow ${isDraggingField && draggedFieldId === field.id ? 'z-50' : 'z-20'}`}
+                                                    style={{
+                                                        left: field.x,
+                                                        top: field.y,
+                                                        width: field.width,
+                                                        height: field.height,
+                                                        border: `2px solid ${selectedField === field.id ? "var(--color-gold)" : "rgba(198,167,94,0.5)"}`,
+                                                        background: selectedField === field.id ? "rgba(198,167,94,0.2)" : "rgba(198,167,94,0.08)",
+                                                        borderRadius: "4px",
+                                                        boxShadow: selectedField === field.id ? "0 0 15px rgba(198,167,94,0.3)" : "none",
+                                                    }}
+                                                >
+                                                    <div className="absolute -top-6 left-0 flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-medium"
+                                                        style={{ background: "var(--color-surface-1)", border: `1px solid ${selectedField === field.id ? "var(--color-gold)" : "var(--color-border)"}`, color: selectedField === field.id ? "var(--color-gold)" : "var(--color-text)" }}>
+                                                        <Move className="w-2.5 h-2.5" />
+                                                        {field.label}
+                                                    </div>
+                                                </div>
+                                            ))}
                                     </div>
-                                ))}
-                            </div>
+                                </Document>
+                            )}
                         </div>
                     </div>
 
