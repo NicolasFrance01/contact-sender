@@ -1,15 +1,55 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Send, Mail, Phone, Eye, ChevronLeft, ChevronRight, Check, Download, FileText, Plus, Move, Settings } from "lucide-react";
+import { Send, Mail, Phone, Eye, ChevronLeft, ChevronRight, Check, Download, FileText, Plus, Move, Settings, ZoomIn, ZoomOut, Maximize } from "lucide-react";
 import { formatFieldValue, getFieldTypeLabel } from "@/lib/utils";
 import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
+import React, { memo } from "react";
 
 // Configure worker
 pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+
+// Create a stable PDF viewer that ONLY re-renders when the PDF itself changes
+const StablePDFViewer = memo(({
+    file,
+    pageNumber,
+    scale,
+    onLoadSuccess
+}: {
+    file: any;
+    pageNumber: number;
+    scale: number;
+    onLoadSuccess: (data: any) => void;
+}) => {
+    return (
+        <Document
+            file={file}
+            onLoadSuccess={onLoadSuccess}
+            onLoadError={(err) => console.error("PDF Load Error:", err)}
+            options={{
+                cMapUrl: `https://unpkg.com/pdfjs-dist@${pdfjs.version}/cmaps/`,
+                standardFontDataUrl: `https://unpkg.com/pdfjs-dist@${pdfjs.version}/standard_fonts/`,
+            }}
+            className="shadow-2xl"
+        >
+            <Page
+                pageNumber={pageNumber}
+                renderTextLayer={false}
+                renderAnnotationLayer={false}
+                scale={scale}
+            />
+        </Document>
+    );
+}, (prev, next) => {
+    return prev.file === next.file &&
+        prev.pageNumber === next.pageNumber &&
+        prev.scale === next.scale;
+});
+
+StablePDFViewer.displayName = "StablePDFViewer";
 
 interface Field {
     id: string;
@@ -61,10 +101,11 @@ export function ContractFillClient({
     const [apiError, setApiError] = useState("");
     const [numPages, setNumPages] = useState<number>(0);
     const [pageNumber, setPageNumber] = useState(1);
+    const [scale, setScale] = useState(1.0);
 
-    function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
+    const onDocumentLoadSuccess = useCallback(({ numPages }: { numPages: number }) => {
         setNumPages(numPages);
-    }
+    }, []);
 
     // Email form
     const [emailTo, setEmailTo] = useState("");
@@ -289,6 +330,35 @@ export function ContractFillClient({
                                         </button>
                                     </div>
                                 )}
+
+                                {/* Zoom Controls */}
+                                <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-surface-3 border border-border ml-2">
+                                    <button
+                                        onClick={() => setScale(prev => Math.max(0.4, prev - 0.1))}
+                                        className="p-1 hover:text-gold transition-colors"
+                                        title="Alejar"
+                                    >
+                                        <ZoomOut className="w-4 h-4" />
+                                    </button>
+                                    <span className="text-xs font-medium min-w-[45px] text-center">
+                                        {Math.round(scale * 100)}%
+                                    </span>
+                                    <button
+                                        onClick={() => setScale(prev => Math.min(3, prev + 0.1))}
+                                        className="p-1 hover:text-gold transition-colors"
+                                        title="Acercar"
+                                    >
+                                        <ZoomIn className="w-4 h-4" />
+                                    </button>
+                                    <div className="w-[1px] h-4 bg-border mx-1" />
+                                    <button
+                                        onClick={() => setScale(1.0)}
+                                        className="p-1 hover:text-gold transition-colors"
+                                        title="Ajustar"
+                                    >
+                                        <Maximize className="w-4 h-4" />
+                                    </button>
+                                </div>
                             </div>
                             <button onClick={handleDownload}
                                 className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold"
@@ -297,24 +367,15 @@ export function ContractFillClient({
                                 Descargar PDF
                             </button>
                         </div>
-                        <div className="flex-1 overflow-auto bg-[#1a1a1a] flex justify-center p-4">
-                            <Document
-                                file={generatedPdfData}
-                                onLoadSuccess={onDocumentLoadSuccess}
-                                onLoadError={(err) => console.error("PDF Load Error:", err)}
-                                options={{
-                                    cMapUrl: `https://unpkg.com/pdfjs-dist@${pdfjs.version}/cmaps/`,
-                                    standardFontDataUrl: `https://unpkg.com/pdfjs-dist@${pdfjs.version}/standard_fonts/`,
-                                }}
-                                className="shadow-2xl"
-                            >
-                                <Page
+                        <div className="flex-1 overflow-auto bg-[#1a1a1a] flex justify-center p-8">
+                            <div className="relative inline-block">
+                                <StablePDFViewer
+                                    file={generatedPdfData}
                                     pageNumber={pageNumber}
-                                    renderTextLayer={false}
-                                    renderAnnotationLayer={false}
-                                    scale={1.2}
+                                    scale={scale}
+                                    onLoadSuccess={onDocumentLoadSuccess}
                                 />
-                            </Document>
+                            </div>
                         </div>
                     </div>
 

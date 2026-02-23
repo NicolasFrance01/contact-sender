@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
                 name,
                 description,
                 pdfData,
-                createdById: session.user.id,
+                createdById: (session.user as any).id,
                 fields: {
                     create: fields.map((f: any) => ({
                         name: f.name,
@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
                         order: f.order || 0,
                     })),
                 },
-            },
+            } as any,
         });
 
         return NextResponse.json(template);

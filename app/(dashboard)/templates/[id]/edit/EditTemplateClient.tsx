@@ -1,15 +1,58 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Upload, X, Plus, ChevronRight, ChevronLeft, Save, Settings, Move, FileText } from "lucide-react";
+import { Upload, X, Plus, ChevronRight, ChevronLeft, Save, Settings, Move, FileText, ZoomIn, ZoomOut, Maximize } from "lucide-react";
 import { getFieldTypeLabel } from "@/lib/utils";
 import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
+import React, { memo } from "react";
 
-// Configure worker
-pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+// Static options to prevent re-renders
+const PDF_OPTIONS = {
+    cMapUrl: `https://unpkg.com/pdfjs-dist@${pdfjs.version}/cmaps/`,
+    standardFontDataUrl: `https://unpkg.com/pdfjs-dist@${pdfjs.version}/standard_fonts/`,
+};
+
+// Create a stable PDF viewer that ONLY re-renders when the PDF itself changes
+const StablePDFViewer = memo(({
+    file,
+    pageNumber,
+    scale,
+    onLoadSuccess,
+}: {
+    file: any;
+    pageNumber: number;
+    scale: number;
+    onLoadSuccess: (data: any) => void;
+}) => {
+    return (
+        <Document
+            file={file}
+            onLoadSuccess={onLoadSuccess}
+            onLoadError={(err) => console.error("PDF Load Error:", err)}
+            options={PDF_OPTIONS}
+            loading={null}
+            className="relative"
+        >
+            <Page
+                pageNumber={pageNumber}
+                renderTextLayer={false}
+                renderAnnotationLayer={false}
+                scale={scale}
+                loading={null}
+                className="shadow-2xl"
+            />
+        </Document>
+    );
+}, (prev, next) => {
+    return prev.file === next.file &&
+        prev.pageNumber === next.pageNumber &&
+        prev.scale === next.scale;
+});
+
+StablePDFViewer.displayName = "StablePDFViewer";
 
 interface FieldBox {
     id: string;
@@ -63,6 +106,7 @@ export default function EditTemplateClient({ template }: { template: any }) {
     const [dragging, setDragging] = useState(false);
     const [numPages, setNumPages] = useState<number>(0);
     const [pageNumber, setPageNumber] = useState(1);
+    const [scale, setScale] = useState(1.0);
 
     // Drag-and-drop state
     const [isDraggingField, setIsDraggingField] = useState(false);
@@ -70,11 +114,12 @@ export default function EditTemplateClient({ template }: { template: any }) {
     const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
     const previewRef = useRef<HTMLDivElement>(null);
+    const pdfWrapperRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
+    const onDocumentLoadSuccess = useCallback(({ numPages }: { numPages: number }) => {
         setNumPages(numPages);
-    }
+    }, []);
 
     function handleFileSelect(file: File) {
         if (file.type !== "application/pdf") {
@@ -137,19 +182,22 @@ export default function EditTemplateClient({ template }: { template: any }) {
     };
 
     const handleMouseMove = (e: React.MouseEvent) => {
-        if (!isDraggingField || !draggedFieldId || !previewRef.current) return;
+        if (!isDraggingField || !draggedFieldId || !pdfWrapperRef.current) return;
 
-        const containerRect = previewRef.current.getBoundingClientRect();
-        const scrollLeft = previewRef.current.scrollLeft;
-        const scrollTop = previewRef.current.scrollTop;
+        const rect = pdfWrapperRef.current.getBoundingClientRect();
 
-        let newX = e.clientX - containerRect.left + scrollLeft - dragOffset.x;
-        let newY = e.clientY - containerRect.top + scrollTop - dragOffset.y;
+        // Calculate position relative to the PDF wrapper itself
+        const x = e.clientX - rect.left - dragOffset.x;
+        const y = e.clientY - rect.top - dragOffset.y;
 
-        newX = Math.max(0, newX);
-        newY = Math.max(0, newY);
+        // Convert screen pixels to base PDF pixels by dividing by scale
+        const baseFieldX = x / scale;
+        const baseFieldY = y / scale;
 
-        updateField(draggedFieldId, { x: newX, y: newY });
+        updateField(draggedFieldId, {
+            x: Math.max(0, baseFieldX),
+            y: Math.max(0, baseFieldY)
+        });
     };
 
     const stopDragging = () => {
@@ -321,7 +369,37 @@ export default function EditTemplateClient({ template }: { template: any }) {
                                         </div>
                                     )}
                                 </div>
-                                <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "var(--color-surface-3)", color: "var(--color-text-dim)" }}>
+
+                                {/* Zoom Controls */}
+                                <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-surface-3 border border-border ml-2">
+                                    <button
+                                        onClick={() => setScale(prev => Math.max(0.4, prev - 0.1))}
+                                        className="p-1 hover:text-gold transition-colors"
+                                        title="Alejar"
+                                    >
+                                        <ZoomOut className="w-4 h-4" />
+                                    </button>
+                                    <span className="text-xs font-medium min-w-[45px] text-center">
+                                        {Math.round(scale * 100)}%
+                                    </span>
+                                    <button
+                                        onClick={() => setScale(prev => Math.min(3, prev + 0.1))}
+                                        className="p-1 hover:text-gold transition-colors"
+                                        title="Acercar"
+                                    >
+                                        <ZoomIn className="w-4 h-4" />
+                                    </button>
+                                    <div className="w-[1px] h-4 bg-border mx-1" />
+                                    <button
+                                        onClick={() => setScale(1.0)}
+                                        className="p-1 hover:text-gold transition-colors"
+                                        title="Ajustar"
+                                    >
+                                        <Maximize className="w-4 h-4" />
+                                    </button>
+                                </div>
+
+                                <span className="text-xs px-2 py-0.5 rounded-full hidden lg:block" style={{ background: "var(--color-surface-3)", color: "var(--color-text-dim)" }}>
                                     Matené apretado un campo para moverlo
                                 </span>
                             </div>
@@ -344,57 +422,55 @@ export default function EditTemplateClient({ template }: { template: any }) {
                             ref={previewRef}
                             onMouseMove={handleMouseMove}
                             onMouseUp={stopDragging}
-                            className="relative flex-1 w-full overflow-auto bg-[#1a1a1a] flex justify-center"
+                            className="relative flex-1 w-full overflow-auto bg-[#1a1a1a] flex justify-center p-8"
                         >
-                            {pdfPreviewUrl && (
-                                <Document
-                                    file={pdfPreviewUrl}
-                                    onLoadSuccess={onDocumentLoadSuccess}
-                                    onLoadError={(err) => console.error("PDF Load Error:", err)}
-                                    options={{
-                                        cMapUrl: `https://unpkg.com/pdfjs-dist@${pdfjs.version}/cmaps/`,
-                                        standardFontDataUrl: `https://unpkg.com/pdfjs-dist@${pdfjs.version}/standard_fonts/`,
-                                    }}
-                                    className="relative"
-                                >
-                                    <Page
-                                        pageNumber={pageNumber}
-                                        renderTextLayer={false}
-                                        renderAnnotationLayer={false}
-                                        scale={1.2}
-                                        className="shadow-2xl"
-                                    />
+                            <div ref={pdfWrapperRef} className="relative inline-block">
+                                {pdfPreviewUrl && (
+                                    <>
+                                        <StablePDFViewer
+                                            file={pdfPreviewUrl}
+                                            pageNumber={pageNumber}
+                                            scale={scale}
+                                            onLoadSuccess={onDocumentLoadSuccess}
+                                        />
 
-                                    {/* Interaction layer overlayed on the page */}
-                                    <div className="absolute inset-0 z-10">
-                                        {fields
-                                            .filter(f => f.page === pageNumber - 1)
-                                            .map((field) => (
-                                                <div
-                                                    key={field.id}
-                                                    onMouseDown={(e) => startDragging(e, field)}
-                                                    className={`absolute cursor-move select-none transition-shadow ${isDraggingField && draggedFieldId === field.id ? 'z-50' : 'z-20'}`}
-                                                    style={{
-                                                        left: field.x,
-                                                        top: field.y,
-                                                        width: field.width,
-                                                        height: field.height,
-                                                        border: `2px solid ${selectedField === field.id ? "var(--color-gold)" : "rgba(198,167,94,0.5)"}`,
-                                                        background: selectedField === field.id ? "rgba(198,167,94,0.2)" : "rgba(198,167,94,0.08)",
-                                                        borderRadius: "4px",
-                                                        boxShadow: selectedField === field.id ? "0 0 15px rgba(198,167,94,0.3)" : "none",
-                                                    }}
-                                                >
-                                                    <div className="absolute -top-6 left-0 flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-medium"
-                                                        style={{ background: "var(--color-surface-1)", border: `1px solid ${selectedField === field.id ? "var(--color-gold)" : "var(--color-border)"}`, color: selectedField === field.id ? "var(--color-gold)" : "var(--color-text)" }}>
-                                                        <Move className="w-2.5 h-2.5" />
-                                                        {field.label}
+                                        {/* Interaction layer overlayed EXACTLY on the page */}
+                                        <div className="absolute inset-0 z-10 pointer-events-none">
+                                            {fields
+                                                .filter(f => f.page === pageNumber - 1)
+                                                .map((field) => (
+                                                    <div
+                                                        key={field.id}
+                                                        onMouseDown={(e) => startDragging(e, field)}
+                                                        className={`absolute cursor-move select-none transition-shadow pointer-events-auto ${isDraggingField && draggedFieldId === field.id ? 'z-50' : 'z-20'}`}
+                                                        style={{
+                                                            left: field.x * scale,
+                                                            top: field.y * scale,
+                                                            width: field.width * scale,
+                                                            height: field.height * scale,
+                                                            border: `2px solid ${selectedField === field.id ? "var(--color-gold)" : "rgba(198,167,94,0.5)"}`,
+                                                            background: selectedField === field.id ? "rgba(198,167,94,0.2)" : "rgba(198,167,94,0.08)",
+                                                            borderRadius: "4px",
+                                                            boxShadow: selectedField === field.id ? "0 0 15px rgba(198,167,94,0.3)" : "none",
+                                                        }}
+                                                    >
+                                                        <div className="absolute -top-6 left-0 flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-medium whitespace-nowrap"
+                                                            style={{
+                                                                background: "var(--color-surface-1)",
+                                                                border: `1px solid ${selectedField === field.id ? "var(--color-gold)" : "var(--color-border)"}`,
+                                                                color: selectedField === field.id ? "var(--color-gold)" : "var(--color-text)",
+                                                                transformOrigin: "left bottom",
+                                                                transform: scale < 0.8 ? `scale(${1 / scale * 0.8})` : "none"
+                                                            }}>
+                                                            <Move className="w-2.5 h-2.5" />
+                                                            {field.label}
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            ))}
-                                    </div>
-                                </Document>
-                            )}
+                                                ))}
+                                        </div>
+                                    </>
+                                )}
+                            </div>
                         </div>
                     </div>
 

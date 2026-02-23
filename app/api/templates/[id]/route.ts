@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
-import fs from "fs/promises";
-import path from "path";
 
 export async function GET(
     req: NextRequest,
@@ -84,7 +82,7 @@ export async function PATCH(
                 description,
                 ...(pdfData && { pdfData }),
                 updatedAt: new Date(),
-            },
+            } as any,
         });
 
         // Update fields: delete old and create new ones (simplest way to sync)
@@ -107,7 +105,7 @@ export async function PATCH(
                     width: f.width,
                     height: f.height,
                     order: f.order || 0,
-                })),
+                })) as any,
             });
         }
 

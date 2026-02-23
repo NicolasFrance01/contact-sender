@@ -28,7 +28,7 @@ export async function POST(
         }
 
         // Load original PDF
-        const base64Data = template.pdfData.split(",")[1] || template.pdfData;
+        const base64Data = (template as any).pdfData.split(",")[1] || (template as any).pdfData;
         const pdfBytes = Buffer.from(base64Data, "base64");
         const pdfDoc = await PDFDocument.load(pdfBytes);
         const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
@@ -67,10 +67,10 @@ export async function POST(
         const contract = await prisma.contract.create({
             data: {
                 templateId: params.id,
-                generatedById: session.user.id,
+                generatedById: (session.user as any).id,
                 filledData: JSON.stringify(values),
                 pdfData: pdfData,
-            },
+            } as any,
         });
 
         return NextResponse.json({ contractId: contract.id, pdfData });
