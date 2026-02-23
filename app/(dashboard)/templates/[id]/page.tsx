@@ -1,6 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
-import { ContractFillClient } from "./ContractFillClient";
+import dynamic from "next/dynamic";
+
+const ContractFillClient = dynamic(
+    () => import("./ContractFillClient").then((mod) => mod.ContractFillClient),
+    { ssr: false }
+);
 
 export default async function TemplateFillPage({ params }: { params: { id: string } }) {
     const [template, settings] = await Promise.all([

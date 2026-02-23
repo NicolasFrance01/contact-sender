@@ -1,7 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
-import EditTemplateClient from "./EditTemplateClient";
+import dynamic from "next/dynamic";
 import { auth } from "@/auth";
+
+const EditTemplateClient = dynamic(() => import("./EditTemplateClient"), { ssr: false });
 
 export default async function EditTemplatePage({ params }: { params: { id: string } }) {
     const session = await auth();
