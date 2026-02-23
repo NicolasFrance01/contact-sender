@@ -30,18 +30,22 @@ export async function POST(req: NextRequest) {
                     return NextResponse.json({ error: "SMTP no configurado" }, { status: 400 });
                 }
 
+                const isGmail = settings.smtpHost.toLowerCase().includes("gmail.com");
+
                 const transporter = nodemailer.createTransport({
-                    host: settings.smtpHost,
-                    port: settings.smtpPort,
-                    secure: settings.smtpPort === 465,
+                    ...(isGmail ? { service: "gmail" } : {
+                        host: settings.smtpHost,
+                        port: settings.smtpPort,
+                        secure: settings.smtpPort === 465,
+                    }),
                     auth: {
                         user: settings.smtpUser,
                         pass: settings.smtpPass,
                     },
                     // Hardening for Gmail and other providers
                     tls: {
-                        rejectUnauthorized: false, // Helps with some serverless envs
-                        ciphers: 'SSLv3', // Compatibility
+                        rejectUnauthorized: false,
+                        ciphers: 'SSLv3',
                     },
                     requireTLS: settings.smtpPort === 587,
                     connectionTimeout: 10000,
