@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
-import { FileText, History, Settings, TrendingUp, Clock, Send } from "lucide-react";
+import { FileText, History, Settings, TrendingUp, Clock, Send, Eye } from "lucide-react";
 
 async function getStats(userId: string, role: string) {
     const whereClauseForContracts = role === "ADMIN" ? {} : { generatedById: userId };
@@ -111,14 +111,23 @@ export default async function DashboardPage() {
                     ) : (
                         stats.recentContracts.map((contract) => (
                             <div key={contract.id} className="flex items-center justify-between px-6 py-4">
-                                <div>
-                                    <div className="text-sm font-medium">{contract.template.name}</div>
+                                <div className="flex-1 min-w-0">
+                                    <div className="text-sm font-medium truncate">{contract.template.name}</div>
                                     <div className="text-xs mt-0.5" style={{ color: "var(--color-text-muted)" }}>
-                                        Por {contract.generatedBy.name}
+                                        Por {contract.generatedBy.name} • {new Date(contract.createdAt).toLocaleDateString("es-AR")}
                                     </div>
                                 </div>
-                                <div className="text-xs" style={{ color: "var(--color-text-muted)" }}>
-                                    {new Date(contract.createdAt).toLocaleDateString("es-AR")}
+                                <div className="flex items-center gap-2">
+                                    <a
+                                        href={`/api/contracts/${contract.id}/view`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="p-2 rounded-lg transition-colors border border-border"
+                                        style={{ background: "var(--color-surface-3)", color: "var(--color-text-muted)" }}
+                                        title="Visualizar"
+                                    >
+                                        <Eye className="w-4 h-4" />
+                                    </a>
                                 </div>
                             </div>
                         ))

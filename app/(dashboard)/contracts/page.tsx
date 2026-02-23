@@ -2,35 +2,87 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 import { FileText, Eye, Calendar, User, Clock, Download } from "lucide-react";
 import Link from "next/link";
+import { FilterHeader } from "./FilterHeader";
 
-export default async function ContractsPage() {
+interface PageProps {
+    searchParams: {
+        from?: string;
+        to?: string;
+        templateId?: string;
+        userId?: string;
+    };
+}
+
+export default async function ContractsPage({ searchParams }: PageProps) {
     const session = await auth();
-    const isAdmin = session!.user.role === "ADMIN";
+    const isAdmin = ["ADMIN", "MANAGER"].includes(session!.user.role as string);
 
-    const contracts = await prisma.contract.findMany({
-        orderBy: { createdAt: "desc" },
-        include: {
-            template: { select: { name: true } },
-            generatedBy: { select: { name: true } },
-        },
-        ...(isAdmin ? {} : { where: { generatedById: session!.user.id } }),
-    });
+    // Build filters
+    const where: any = {};
+
+    if (!isAdmin) {
+        where.generatedById = session!.user.id;
+    } else if (searchParams.userId) {
+        where.generatedById = searchParams.userId;
+    }
+
+    if (searchParams.templateId) {
+        where.templateId = searchParams.templateId;
+    }
+
+    if (searchParams.from || searchParams.to) {
+        where.createdAt = {};
+        if (searchParams.from) {
+            where.createdAt.gte = new Date(searchParams.from);
+        }
+        if (searchParams.to) {
+            // Set to end of day
+            const toDate = new Date(searchParams.to);
+            toDate.setHours(23, 59, 59, 999);
+            where.createdAt.lte = toDate;
+        }
+    }
+
+    const [contracts, allTemplates, allUsers] = await Promise.all([
+        prisma.contract.findMany({
+            where,
+            orderBy: { createdAt: "desc" },
+            include: {
+                template: { select: { name: true } },
+                generatedBy: { select: { name: true } },
+            },
+        }),
+        prisma.template.findMany({
+            select: { id: true, name: true },
+            orderBy: { name: "asc" }
+        }),
+        isAdmin ? prisma.user.findMany({
+            select: { id: true, name: true },
+            orderBy: { name: "asc" }
+        }) : Promise.resolve([])
+    ]);
 
     return (
-        <div className="animate-fade-in">
+        <div className="animate-fade-in pb-12">
             <div className="mb-8">
                 <h1 className="text-3xl font-light mb-1" style={{ fontFamily: "var(--font-cormorant)" }}>
                     Contratos Generados
                 </h1>
                 <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>
-                    {contracts.length} documento{contracts.length !== 1 ? "s" : ""} generado{contracts.length !== 1 ? "s" : ""}
+                    {contracts.length} documento{contracts.length !== 1 ? "s" : ""} encontrado{contracts.length !== 1 ? "s" : ""}
                 </p>
             </div>
+
+            <FilterHeader
+                templates={allTemplates}
+                users={allUsers}
+                isAdmin={isAdmin}
+            />
 
             <div className="rounded-2xl overflow-hidden" style={{ background: "var(--color-surface-2)", border: "1px solid var(--color-border)" }}>
                 {contracts.length === 0 ? (
                     <div className="px-6 py-16 text-center text-sm" style={{ color: "var(--color-text-muted)" }}>
-                        No se han generado contratos aún.
+                        No se encontraron contratos con los filtros aplicados.
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
