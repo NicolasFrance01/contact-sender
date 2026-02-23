@@ -350,6 +350,11 @@ export default function EditTemplateClient({ template }: { template: any }) {
                                 <Document
                                     file={pdfPreviewUrl}
                                     onLoadSuccess={onDocumentLoadSuccess}
+                                    onLoadError={(err) => console.error("PDF Load Error:", err)}
+                                    options={{
+                                        cMapUrl: `https://unpkg.com/pdfjs-dist@${pdfjs.version}/cmaps/`,
+                                        standardFontDataUrl: `https://unpkg.com/pdfjs-dist@${pdfjs.version}/standard_fonts/`,
+                                    }}
                                     className="relative"
                                 >
                                     <Page
