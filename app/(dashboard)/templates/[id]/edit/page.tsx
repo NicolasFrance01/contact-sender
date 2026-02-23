@@ -18,5 +18,8 @@ export default async function EditTemplatePage({ params }: { params: { id: strin
 
     if (!template) notFound();
 
-    return <EditTemplateClient template={template} />;
+    // Serialize to plain object to avoid Date/Class serialization issues in Client Components
+    const serializedTemplate = JSON.parse(JSON.stringify(template));
+
+    return <EditTemplateClient template={serializedTemplate} />;
 }

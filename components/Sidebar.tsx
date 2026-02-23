@@ -19,7 +19,8 @@ import {
 
 const navItems = [
     { href: "/", icon: LayoutDashboard, label: "Dashboard", roles: ["READER", "EDITOR", "MANAGER", "ADMIN"] },
-    { href: "/templates", icon: FileText, label: "Contratos", roles: ["READER", "EDITOR", "MANAGER", "ADMIN"] },
+    { href: "/templates", icon: FileText, label: "Plantillas", roles: ["READER", "EDITOR", "MANAGER", "ADMIN"] },
+    { href: "/contracts", icon: FileText, label: "Generados", roles: ["READER", "EDITOR", "MANAGER", "ADMIN"] },
     { href: "/history", icon: History, label: "Historial", roles: ["READER", "EDITOR", "MANAGER", "ADMIN"] },
     { href: "/settings", icon: Settings, label: "Configuración", roles: ["MANAGER", "ADMIN"] },
     { href: "/settings/users", icon: Users, label: "Usuarios", roles: ["ADMIN"] },

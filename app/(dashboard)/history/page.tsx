@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
+import { Eye } from "lucide-react";
 
 export default async function HistoryPage() {
     const session = await auth();
@@ -9,7 +10,11 @@ export default async function HistoryPage() {
         orderBy: { sentAt: "desc" },
         take: 100,
         include: {
-            contract: { include: { template: { select: { name: true } } } },
+            contract: {
+                include: {
+                    template: { select: { name: true } }
+                }
+            },
             sentBy: { select: { name: true, email: true } },
         },
         ...(isAdmin ? {} : { where: { sentById: session!.user.id } }),
@@ -47,7 +52,7 @@ export default async function HistoryPage() {
                         <table className="w-full text-sm">
                             <thead>
                                 <tr style={{ borderBottom: "1px solid var(--color-border)" }}>
-                                    {["Contrato", "Destinatario", "Canal", "Usuario", "Fecha", "Estado"].map((h) => (
+                                    {["Contrato", "Destinatario", "Canal", "Usuario", "Fecha", "Estado", "Acciones"].map((h) => (
                                         <th key={h} className="px-5 py-3.5 text-left text-xs font-medium uppercase tracking-widest"
                                             style={{ color: "var(--color-text-muted)" }}>
                                             {h}
@@ -88,6 +93,18 @@ export default async function HistoryPage() {
                                                     </span>
                                                 )}
                                             </div>
+                                        </td>
+                                        <td className="px-5 py-4">
+                                            <a
+                                                href={(send.contract as any).pdfData}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all"
+                                                style={{ background: "var(--color-gold-muted)", color: "var(--color-gold)", border: "1px solid rgba(198,167,94,0.2)" }}
+                                            >
+                                                <Eye className="w-3 h-3" />
+                                                PDF
+                                            </a>
                                         </td>
                                     </tr>
                                 ))}
