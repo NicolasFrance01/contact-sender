@@ -9,10 +9,14 @@ import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 import React, { memo } from "react";
 
+// Set the worker URL correctly for react-pdf/pdfjs
+const PDFJS_VERSION = pdfjs.version || '4.0.379'; // Fallback to a known working version if undefined
+pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${PDFJS_VERSION}/build/pdf.worker.min.mjs`;
+
 // Static options to prevent re-renders
 const PDF_OPTIONS = {
-    cMapUrl: `https://unpkg.com/pdfjs-dist@${pdfjs.version}/cmaps/`,
-    standardFontDataUrl: `https://unpkg.com/pdfjs-dist@${pdfjs.version}/standard_fonts/`,
+    cMapUrl: `https://unpkg.com/pdfjs-dist@${PDFJS_VERSION}/cmaps/`,
+    standardFontDataUrl: `https://unpkg.com/pdfjs-dist@${PDFJS_VERSION}/standard_fonts/`,
 };
 
 // Create a stable PDF viewer that ONLY re-renders when the PDF itself changes

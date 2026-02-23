@@ -9,8 +9,9 @@ import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 import React, { memo } from "react";
 
-// Configure worker
-pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+// Set the worker URL correctly for react-pdf/pdfjs
+const PDFJS_VERSION = pdfjs.version || '4.0.379'; // Fallback to a known working version if undefined
+pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${PDFJS_VERSION}/build/pdf.worker.min.mjs`;
 
 // Create a stable PDF viewer that ONLY re-renders when the PDF itself changes
 const StablePDFViewer = memo(({
@@ -30,8 +31,8 @@ const StablePDFViewer = memo(({
             onLoadSuccess={onLoadSuccess}
             onLoadError={(err) => console.error("PDF Load Error:", err)}
             options={{
-                cMapUrl: `https://unpkg.com/pdfjs-dist@${pdfjs.version}/cmaps/`,
-                standardFontDataUrl: `https://unpkg.com/pdfjs-dist@${pdfjs.version}/standard_fonts/`,
+                cMapUrl: `https://unpkg.com/pdfjs-dist@${PDFJS_VERSION}/cmaps/`,
+                standardFontDataUrl: `https://unpkg.com/pdfjs-dist@${PDFJS_VERSION}/standard_fonts/`,
             }}
             className="shadow-2xl"
         >
