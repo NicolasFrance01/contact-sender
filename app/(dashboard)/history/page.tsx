@@ -96,7 +96,7 @@ export default async function HistoryPage() {
                                         </td>
                                         <td className="px-5 py-4">
                                             <a
-                                                href={(send.contract as any).pdfData}
+                                                href={`/api/contracts/${send.contract.id}/view`}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all"

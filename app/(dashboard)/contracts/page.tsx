@@ -72,7 +72,7 @@ export default async function ContractsPage() {
                                         <td className="px-5 py-4">
                                             <div className="flex items-center gap-2">
                                                 <a
-                                                    href={(contract as any).pdfData}
+                                                    href={`/api/contracts/${contract.id}/view`}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
@@ -82,7 +82,7 @@ export default async function ContractsPage() {
                                                     Visualizar
                                                 </a>
                                                 <a
-                                                    href={(contract as any).pdfData}
+                                                    href={`/api/contracts/${contract.id}/view`}
                                                     download={`contrato_${contract.id}.pdf`}
                                                     className="p-1.5 rounded-lg transition-colors border border-border"
                                                     style={{ background: "var(--color-surface-3)", color: "var(--color-text-muted)" }}
