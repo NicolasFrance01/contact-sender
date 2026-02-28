@@ -4,6 +4,9 @@ import "./globals.css";
 export const metadata: Metadata = {
     title: "Contract Sender | Gestión Inteligente de Contratos",
     description: "Plataforma profesional para gestión, completado y envío de contratos PDF.",
+    icons: {
+        icon: "/simbolo.png",
+    },
 };
 
 export default function RootLayout({
