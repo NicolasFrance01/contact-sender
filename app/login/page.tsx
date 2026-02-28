@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
@@ -10,6 +10,11 @@ export default function LoginPage() {
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        // Force light mode on login page
+        document.documentElement.classList.remove("dark");
+    }, []);
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
@@ -35,7 +40,7 @@ export default function LoginPage() {
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center relative overflow-hidden" style={{ background: "var(--color-bg)" }}>
+        <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-white">
             {/* Background decorative elements */}
             <div className="absolute inset-0 overflow-hidden">
                 <div className="absolute top-0 left-1/4 w-96 h-96 rounded-full opacity-5"
@@ -50,12 +55,12 @@ export default function LoginPage() {
             <div className="relative w-full max-w-md px-6">
                 {/* Logo area */}
                 <div className="text-center mb-10 animate-fade-in">
-                    <div className="inline-flex items-center justify-center mb-5 w-full mx-auto p-4 rounded-3xl bg-white shadow-md transition-colors border border-transparent dark:border-border" style={{ maxWidth: '280px' }}>
+                    <div className="inline-flex items-center justify-center mb-5 w-full mx-auto" style={{ maxWidth: '280px' }}>
                         <img
                             src="/logo1.png"
                             alt="Logo"
-                            className="w-full h-auto object-contain"
-                            style={{ maxHeight: '120px' }}
+                            className="w-full h-auto object-contain drop-shadow-md"
+                            style={{ maxHeight: '120px', filter: 'drop-shadow(0px 0px 10px rgba(255, 255, 255, 0.8))' }}
                         />
                     </div>
                     <div className="gold-divider mt-4" />
