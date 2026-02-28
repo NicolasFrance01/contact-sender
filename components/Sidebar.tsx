@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import {
     LayoutDashboard,
@@ -16,6 +16,8 @@ import {
     ChevronLeft,
     ChevronRight,
     Send,
+    Sun,
+    Moon,
 } from "lucide-react";
 
 const navItems = [
@@ -36,6 +38,23 @@ interface SidebarProps {
 export default function Sidebar({ userRole, userName, userEmail }: SidebarProps) {
     const pathname = usePathname();
     const [collapsed, setCollapsed] = useState(false);
+    const [theme, setTheme] = useState<"light" | "dark">("light");
+
+    useEffect(() => {
+        // Simple initialization
+        const currentTheme = document.documentElement.classList.contains("dark") ? "dark" : "light";
+        setTheme(currentTheme);
+    }, []);
+
+    const toggleTheme = () => {
+        const newTheme = theme === "light" ? "dark" : "light";
+        setTheme(newTheme);
+        if (newTheme === "dark") {
+            document.documentElement.classList.add("dark");
+        } else {
+            document.documentElement.classList.remove("dark");
+        }
+    };
 
     const allowedNav = navItems.filter((item) => item.roles.includes(userRole));
 
@@ -51,20 +70,10 @@ export default function Sidebar({ userRole, userName, userEmail }: SidebarProps)
         >
             {/* Logo */}
             <div className="flex items-center gap-3 px-4 py-5 relative" style={{ borderBottom: "1px solid var(--color-border)" }}>
-                <div className="flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center bg-white shadow-sm overflow-hidden"
-                    style={{ border: "1px solid var(--color-border)" }}>
-                    <Image src="/logo1.png" alt="Contract Sender" width={32} height={32} className="object-cover" />
+                <div className="flex-shrink-0 flex items-center justify-center w-full px-2">
+                    <Image src="/logo1.png" alt="Logo" width={collapsed ? 40 : 180} height={collapsed ? 40 : 60} className="object-contain transition-all duration-300" priority />
                 </div>
-                {!collapsed && (
-                    <div className="overflow-hidden">
-                        <div className="text-sm font-semibold leading-tight whitespace-nowrap" style={{ fontFamily: "var(--font-cormorant)", fontSize: "1rem" }}>
-                            Contract Sender
-                        </div>
-                        <div className="text-xs" style={{ color: "var(--color-text-muted)" }}>
-                            Sistema de contratos
-                        </div>
-                    </div>
-                )}
+
                 <button
                     onClick={() => setCollapsed(!collapsed)}
                     className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full flex items-center justify-center transition-colors"
@@ -102,8 +111,20 @@ export default function Sidebar({ userRole, userName, userEmail }: SidebarProps)
                 })}
             </nav>
 
-            {/* User info & logout */}
+            {/* Theme Toggle & User Info & Logout */}
             <div className="p-3" style={{ borderTop: "1px solid var(--color-border)" }}>
+                <button
+                    onClick={toggleTheme}
+                    className={cn(
+                        "w-full flex items-center gap-3 px-3 py-2.5 mb-2 rounded-xl transition-colors text-sm",
+                        collapsed ? "justify-center" : "justify-start"
+                    )}
+                    style={{ color: "var(--color-text-muted)", background: "transparent" }}
+                    title={theme === "light" ? "Modo oscuro" : "Modo claro"}
+                >
+                    {theme === "light" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+                    {!collapsed && <span>{theme === "light" ? "Modo oscuro" : "Modo claro"}</span>}
+                </button>
                 {!collapsed && (
                     <div className="px-3 py-2 mb-2 rounded-xl" style={{ background: "var(--color-surface-3)" }}>
                         <div className="text-sm font-medium truncate">{userName}</div>

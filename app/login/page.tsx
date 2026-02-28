@@ -51,15 +51,16 @@ export default function LoginPage() {
             <div className="relative w-full max-w-md px-6">
                 {/* Logo area */}
                 <div className="text-center mb-10 animate-fade-in">
-                    <div className="inline-flex items-center justify-center mb-5">
-                        <Image src="/logo1.png" alt="Contract Sender Logo" width={64} height={64} className="rounded-2xl" style={{ boxShadow: "0 8px 32px rgba(43, 191, 191, 0.25)" }} />
+                    <div className="inline-flex items-center justify-center mb-5 w-full mx-auto" style={{ maxWidth: '280px' }}>
+                        <Image
+                            src="/logo1.png"
+                            alt="Logo"
+                            width={300}
+                            height={120}
+                            className="w-full h-auto object-contain"
+                            priority
+                        />
                     </div>
-                    <h1 className="text-4xl font-light mb-2" style={{ fontFamily: "var(--font-cormorant)", color: "var(--color-text)" }}>
-                        Contract Sender
-                    </h1>
-                    <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>
-                        Gestión inteligente de contratos
-                    </p>
                     <div className="gold-divider mt-4" />
                 </div>
 
@@ -130,7 +131,7 @@ export default function LoginPage() {
                 </div>
 
                 <p className="text-center text-xs mt-8" style={{ color: "var(--color-text-dim)" }}>
-                    © 2026 Contract Sender · Sistema profesional de gestión de contratos
+                    © 2026 Yubiescalona | Impacto | Conexion | Seguros · Sistema profesional de gestión
                 </p>
             </div>
         </div>

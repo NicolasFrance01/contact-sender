@@ -27,6 +27,19 @@
   --color-warning: #F59E0B;
 }
 
+.dark {
+  --color-bg: #000000;
+  --color-surface-1: #0D0D0D;
+  --color-surface-2: #111111;
+  --color-surface-3: #161616;
+  --color-surface-4: #1E1E1E;
+  --color-border: #282828;
+  --color-border-light: #333333;
+  --color-text: #F5F5F5;
+  --color-text-muted: #888888;
+  --color-text-dim: #555555;
+}
+
 * {
   box-sizing: border-box;
 }
