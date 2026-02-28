@@ -70,8 +70,13 @@ export default function Sidebar({ userRole, userName, userEmail }: SidebarProps)
         >
             {/* Logo */}
             <div className="flex items-center gap-3 px-4 py-5 relative" style={{ borderBottom: "1px solid var(--color-border)" }}>
-                <div className="flex-shrink-0 flex items-center justify-center w-full px-2">
-                    <Image src="/logo1.png" alt="Logo" width={collapsed ? 40 : 180} height={collapsed ? 40 : 60} className="object-contain transition-all duration-300" priority />
+                <div className="flex-shrink-0 flex items-center justify-center w-full px-3 py-2 bg-white rounded-xl shadow-sm border border-transparent dark:border-border transition-colors">
+                    <img
+                        src="/logo1.png"
+                        alt="Logo"
+                        className="object-contain transition-all duration-300"
+                        style={{ width: collapsed ? '40px' : '100%', maxWidth: '180px', height: collapsed ? '40px' : 'auto', maxHeight: '60px' }}
+                    />
                 </div>
 
                 <button

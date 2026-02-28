@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 
 export default function LoginPage() {
     const router = useRouter();
@@ -51,14 +50,12 @@ export default function LoginPage() {
             <div className="relative w-full max-w-md px-6">
                 {/* Logo area */}
                 <div className="text-center mb-10 animate-fade-in">
-                    <div className="inline-flex items-center justify-center mb-5 w-full mx-auto" style={{ maxWidth: '280px' }}>
-                        <Image
+                    <div className="inline-flex items-center justify-center mb-5 w-full mx-auto p-4 rounded-3xl bg-white shadow-md transition-colors border border-transparent dark:border-border" style={{ maxWidth: '280px' }}>
+                        <img
                             src="/logo1.png"
                             alt="Logo"
-                            width={300}
-                            height={120}
                             className="w-full h-auto object-contain"
-                            priority
+                            style={{ maxHeight: '120px' }}
                         />
                     </div>
                     <div className="gold-divider mt-4" />
