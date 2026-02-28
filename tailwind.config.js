@@ -9,21 +9,21 @@ module.exports = {
         extend: {
             colors: {
                 gold: {
-                    DEFAULT: "#C6A75E",
-                    light: "#E0C17A",
-                    dark: "#A88D4A",
-                    muted: "#8B7340",
+                    DEFAULT: "#2BBFBF",
+                    light: "#4DD0D0",
+                    dark: "#1F9E9E",
+                    muted: "#A0E0E0",
                 },
                 surface: {
-                    DEFAULT: "#0D0D0D",
-                    1: "#111111",
-                    2: "#161616",
-                    3: "#1A1A1A",
-                    4: "#222222",
+                    DEFAULT: "#FFFFFF",
+                    1: "#F9FAFB",
+                    2: "#F3F4F6",
+                    3: "#E5E7EB",
+                    4: "#D1D5DB",
                 },
                 border: {
-                    DEFAULT: "#2A2A2A",
-                    light: "#333333",
+                    DEFAULT: "#E5E7EB",
+                    light: "#D1D5DB",
                 },
             },
             fontFamily: {

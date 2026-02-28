@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 export default function LoginPage() {
     const router = useRouter();
@@ -50,11 +51,8 @@ export default function LoginPage() {
             <div className="relative w-full max-w-md px-6">
                 {/* Logo area */}
                 <div className="text-center mb-10 animate-fade-in">
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-5"
-                        style={{ background: "linear-gradient(135deg, var(--color-gold-dark), var(--color-gold))", boxShadow: "0 8px 32px rgba(198,167,94,0.25)" }}>
-                        <svg className="w-8 h-8 text-black" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 1v5h5L13 3zM6 20V4h5v6h6v10H6z" />
-                        </svg>
+                    <div className="inline-flex items-center justify-center mb-5">
+                        <Image src="/logo1.png" alt="Contract Sender Logo" width={64} height={64} className="rounded-2xl" style={{ boxShadow: "0 8px 32px rgba(43, 191, 191, 0.25)" }} />
                     </div>
                     <h1 className="text-4xl font-light mb-2" style={{ fontFamily: "var(--font-cormorant)", color: "var(--color-text)" }}>
                         Contract Sender

@@ -8,23 +8,23 @@
   --font-cormorant: 'Cormorant Garamond', serif;
   --font-inter: 'Inter', sans-serif;
 
-  --color-bg: #000000;
-  --color-surface-1: #0D0D0D;
-  --color-surface-2: #111111;
-  --color-surface-3: #161616;
-  --color-surface-4: #1E1E1E;
-  --color-border: #282828;
-  --color-border-light: #333333;
-  --color-gold: #C6A75E;
-  --color-gold-light: #E0C17A;
-  --color-gold-dark: #A88D4A;
-  --color-gold-muted: rgba(198, 167, 94, 0.15);
-  --color-text: #F5F5F5;
-  --color-text-muted: #888888;
-  --color-text-dim: #555555;
-  --color-error: #E05555;
-  --color-success: #5EA87A;
-  --color-warning: #E0A855;
+  --color-bg: #FFFFFF;
+  --color-surface-1: #F9FAFB;
+  --color-surface-2: #F3F4F6;
+  --color-surface-3: #E5E7EB;
+  --color-surface-4: #D1D5DB;
+  --color-border: #E5E7EB;
+  --color-border-light: #D1D5DB;
+  --color-gold: #2BBFBF;
+  --color-gold-light: #4DD0D0;
+  --color-gold-dark: #1F9E9E;
+  --color-gold-muted: rgba(43, 191, 191, 0.15);
+  --color-text: #000000;
+  --color-text-muted: #4B5563;
+  --color-text-dim: #6B7280;
+  --color-error: #EF4444;
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
 }
 
 * {
@@ -46,13 +46,16 @@ body {
   width: 6px;
   height: 6px;
 }
+
 ::-webkit-scrollbar-track {
   background: var(--color-surface-1);
 }
+
 ::-webkit-scrollbar-thumb {
   background: var(--color-border-light);
   border-radius: 3px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-gold-muted);
 }
@@ -64,7 +67,9 @@ body {
 }
 
 /* Base input styles */
-input, textarea, select {
+input,
+textarea,
+select {
   background-color: var(--color-surface-3);
   border: 1px solid var(--color-border);
   color: var(--color-text);
@@ -72,11 +77,16 @@ input, textarea, select {
   transition: border-color 0.2s, box-shadow 0.2s;
   outline: none;
 }
-input:focus, textarea:focus, select:focus {
+
+input:focus,
+textarea:focus,
+select:focus {
   border-color: var(--color-gold);
   box-shadow: 0 0 0 2px rgba(198, 167, 94, 0.15);
 }
-input::placeholder, textarea::placeholder {
+
+input::placeholder,
+textarea::placeholder {
   color: var(--color-text-dim);
 }
 

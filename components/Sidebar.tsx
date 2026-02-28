@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { useState } from "react";
@@ -50,9 +51,9 @@ export default function Sidebar({ userRole, userName, userEmail }: SidebarProps)
         >
             {/* Logo */}
             <div className="flex items-center gap-3 px-4 py-5 relative" style={{ borderBottom: "1px solid var(--color-border)" }}>
-                <div className="flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center"
-                    style={{ background: "linear-gradient(135deg, var(--color-gold-dark), var(--color-gold))" }}>
-                    <Send className="w-4 h-4 text-black" />
+                <div className="flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center bg-white shadow-sm overflow-hidden"
+                    style={{ border: "1px solid var(--color-border)" }}>
+                    <Image src="/logo1.png" alt="Contract Sender" width={32} height={32} className="object-cover" />
                 </div>
                 {!collapsed && (
                     <div className="overflow-hidden">
