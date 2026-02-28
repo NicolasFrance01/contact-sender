@@ -133,7 +133,7 @@ export default function LoginPage() {
                 </div>
 
                 <p className="text-center text-xs mt-8" style={{ color: "var(--color-text-dim)" }}>
-                    © 2026 Yubiescalona | Impacto | Conexion | Seguros · Sistema profesional de gestión
+                    © 2026 Yubiescalona | Impacto | Conexion | Seguros <br /> Sistema profesional de gestión
                 </p>
             </div>
         </div>
