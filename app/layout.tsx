@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-    title: "Contract Sender | Gestión Inteligente de Contratos",
-    description: "Plataforma profesional para gestión, completado y envío de contratos PDF.",
+    title: "Yubiescalona",
+    description: "Sistema Profesional de Gestion",
     icons: {
         icon: "/simbolo.png",
     },
